@@ -1,16 +1,100 @@
-# React + Vite
+# Audit AI
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Audit AI is a professional code analysis and testing application with an integrated AI chat interface to help users review, improve, and manage their code more efficiently.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- AI-powered code analysis
+- Code improvement suggestions
+- Code formatting and cleanup support
+- AI chat assistant for feedback and guidance
+- React frontend with Node.js backend
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React + Vite
+- JavaScript
+- Express
+- Node.js
+- Groq API
 
-## Expanding the ESLint configuration
+## Prerequisites
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Before running the project, make sure you have:
+
+- Node.js installed
+- npm installed
+- A Groq API key
+
+## Project Structure
+
+```bash
+Audit-AI/
+├── backend/
+│   ├── server.js
+│   └── .env
+├── src/
+├── public/
+├── package.json
+├── vite.config.js
+├── .gitignore
+├── index.html
+├── README.md
+└── package-lock.json
+```
+
+## Installation
+
+Install project dependencies:
+
+```bash
+npm install
+```
+
+## Environment Setup
+
+Create a file named `.env` inside the `backend` folder and add your Groq API key:
+
+```env
+GROQ_API_KEY=your_api_key_here
+```
+
+This file is local to your machine and should not be committed to GitHub.
+
+## Run the Project
+
+### 1. Start the backend
+
+```bash
+cd backend
+node server.js
+```
+
+### 2. Start the frontend
+
+Open a new terminal and run:
+
+```bash
+npm run dev
+```
+
+The frontend will run with Vite and the backend will run on the local server.
+
+## Important Notes
+
+- Keep your `.env` file private.
+- Add the following line to your `.gitignore` file:
+
+```gitignore
+/backend/.env
+```
+
+- Do not push your API key to GitHub.
+
+## License
+
+This project is for educational and personal use.
+
+## Contact
+
+For questions or improvements, contact the project maintainer.
