@@ -24,7 +24,7 @@ Before running the project, make sure you have:
 
 - Node.js installed
 - npm installed
-- A Groq API key
+- A Groq API key (which can be created from https://console.groq.com/keys)
 
 ## Project Structure
 
