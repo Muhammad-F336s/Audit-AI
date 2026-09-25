@@ -1,8 +1,6 @@
-// import React from "react";
 import Editor from "@monaco-editor/react";
 import { IoMdArrowUp } from "react-icons/io";
 import { FaCode } from "react-icons/fa6";
-import { useForm } from "react-hook-form";
 import { useState } from "react";
 import "./App.css";
 
@@ -60,54 +58,79 @@ const Languages = [
   "Flutter",
   "SwiftUI",
 ];
-const prepareResponseSet = () => {
-  console.log("Preparing Display");
-  const editorWindow = document.querySelector(".editor");
-  const responseWindow = document.querySelector(".response-window");
-
-  if (editorWindow) {
-    console.log("editorWindow");
-  }
-
-  if (responseWindow) {
-    console.log("Response Window");
-  }
-};
 
 const UI = () => {
   const [userPrompt, setUserPrompt] = useState("");
-  const [text, setText] = useState("Ai");
-  const { register, handleSubmit } = useForm();
-  const [code, setCode] = useState("'Place your code here...'");
+  const [draftLanguage, setDraftLanguage] = useState("");
+  const [selectedLanguage, setSelectedLanguage] = useState("javascript");
+  const [responseText, setResponseText] = useState("Ai");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [code, setCode] = useState(`INSTRUCTIONS
+    1. Select language from the dropdown and press Enter.
+    2. Paste your code here to audit.`);
+
+  // Editor Value Handler
   const handleEditorChange = (value) => {
     setCode(value || "");
   };
 
-  const submitUserQuery = () => {
-    alert(`user prompted: ${userPrompt}`);
+  // Language Selection Handlers
+  const handleLanguageChange = (e) => {
+    setDraftLanguage(e.target.value);
   };
 
-  const onSubmit = async (data, btn) => {
-    prepareResponseSet();
-    setTimeout(async () => {
+  const handleLanguageKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      // Monaco language IDs should be lowercase
+      const formattedLang = draftLanguage.trim().toLowerCase();
+      setSelectedLanguage(formattedLang);
+      console.log(`User agreed on: ${formattedLang}`);
+    }
+  };
+
+  // Prompt Submit Handler
+  const submitUserQuery = () => {
+    if (!userPrompt.trim()) return;
+    alert(`User Prompted: ${userPrompt}`);
+  };
+
+  // Main Audit Form Submit Action
+  const handleOperationSubmit = async (operationType) => {
+    if (!code.trim()) {
+      alert("Please enter some code first!");
+      return;
+    }
+
+    setIsLoading(true);
+    setResponseText("Analyzing code, please wait...");
+
+    try {
       const response = await fetch("http://localhost:3000/api/ask", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ code: data, operation: btn }),
+        body: JSON.stringify({
+          code: code,
+          language: selectedLanguage,
+          operation: operationType,
+          prompt: userPrompt,
+        }),
       });
-      const result = await response.json();
-      console.log("Submitted data:", data);
-      console.log("Server response:", result);
-      console.log("Message from server:", result.message);
-      setText(result.message);
-      alert(`Server response: ${result.message}`);
-    }, 5000);
 
-    // console.log("Editor data:", data);
-    // console.log("Operation:", btn);
+      const result = await response.json();
+      console.log("Server Response:", result);
+      setResponseText(result.message || "Response received successfully.");
+    } catch (error) {
+      console.error("API Call Failed:", error);
+      setResponseText("Failed to get response from server.");
+    } finally {
+      setIsLoading(false);
+    }
   };
+
   return (
     <>
       <header>
@@ -129,47 +152,44 @@ const UI = () => {
           </ul>
         </nav>
       </header>
+
       <main>
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          action="submit"
-          className="editor-form"
-        >
+        <div className="editor-form">
           <div className="main-window">
+            {/* Editor Window */}
             <div className="editor">
               <Editor
                 className="code-editor"
-                {...register("username", { required: true })}
                 height="100%"
                 width="100%"
-                margin="auto"
-                defaultLanguage="javascript"
+                language={selectedLanguage}
                 theme="vs-dark"
                 value={code}
-                onChange={(e) => {
-                  handleEditorChange(e);
-                }}
+                onChange={handleEditorChange}
                 options={{
                   fontSize: 15,
                   fontFamily: "Fira Code, monospace",
                   lineHeight: 24,
                   padding: { top: 16, bottom: 16 },
                   cursorBlinking: "smooth",
-                  cursorStyle: "line",
                   minimap: { enabled: false },
                   scrollBeyondLastLine: false,
                   automaticLayout: true,
                 }}
               />
             </div>
+
+            {/* Chat & Diagnostic Panel */}
             <div className="chat-window">
               <div className="selector-list">
                 <input
                   className="language-selector"
                   type="text"
-                  // id="city"
                   list="languages-list"
-                  placeholder="Select your Language || Framework || Library"
+                  placeholder="Select language and press Enter"
+                  value={draftLanguage}
+                  onChange={handleLanguageChange}
+                  onKeyDown={handleLanguageKeyDown}
                 />
 
                 <datalist id="languages-list">
@@ -177,18 +197,27 @@ const UI = () => {
                     <option key={language} value={language} />
                   ))}
                 </datalist>
+
+                <div className="language-display">
+                  {selectedLanguage.toUpperCase()}
+                </div>
               </div>
-              {text}
+
+              <div className="response-display">
+                {isLoading ? (
+                  <p>Processing Request...</p>
+                ) : (
+                  <p>{responseText}</p>
+                )}
+              </div>
+
               <div className="prompt-window">
                 <input
                   type="text"
-                  name="prompt-receiver"
                   className="prompt-reciever"
                   placeholder="Describe Your Query Here..."
                   value={userPrompt}
-                  onChange={(e) => {
-                    setUserPrompt(e.target.value);
-                  }}
+                  onChange={(e) => setUserPrompt(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
@@ -207,114 +236,53 @@ const UI = () => {
               </div>
             </div>
           </div>
+
+          {/* Action Buttons */}
           <div className="imp-btns">
-            <input
+            <button
               type="button"
-              value="Analyze"
-              onClick={(e) => {
-                e.preventDefault();
-                onSubmit(code, e.target.value);
-              }}
+              onClick={() => handleOperationSubmit("Analyze")}
               className="submit-btn"
-            />
-            <input
+            >
+              Analyze
+            </button>
+
+            <button
               type="button"
-              value="Shorten It"
-              onClick={(e) => {
-                e.preventDefault();
-                onSubmit(code, e.target.value);
-              }}
+              onClick={() => handleOperationSubmit("Shorten It")}
               className="shorten-btn"
-            />
-            <input
+            >
+              Shorten It
+            </button>
+
+            <button
               type="button"
-              value="Beautify It"
-              onClick={(e) => {
-                e.preventDefault();
-                onSubmit(code, e.target.value);
-              }}
+              onClick={() => handleOperationSubmit("Beautify It")}
               className="beautify-btn"
-            />
-            <input
+            >
+              Beautify It
+            </button>
+
+            <button
               type="button"
-              value="Feedback"
-              onClick={(e) => {
-                e.preventDefault();
-                onSubmit(code, e.target.value);
-              }}
+              onClick={() => handleOperationSubmit("Feedback")}
               className="feedback-btn"
-            />
-            <input
+            >
+              Feedback
+            </button>
+
+            <button
               type="button"
-              value="Clear"
-              onClick={(e) => {
-                e.preventDefault();
-                setCode("");
-              }}
+              onClick={() => setCode("")}
               className="clear-btn"
-            />
-          </div>
-        </form>
-      </main>
-      <footer className="site-footer">
-        <div className="footer-content">
-          <div className="footer-brand">
-            <div className="footer-logo">
-              <span>Audit</span>
-              <FaCode className="footer-logo-icon" />
-            </div>
-            <p>
-              AI-powered code review for cleaner, faster, and more reliable
-              software delivery.
-            </p>
-          </div>
-
-          <div className="footer-links">
-            <h4>Company</h4>
-            <ul>
-              <li>
-                <a href="#home">Home</a>
-              </li>
-              <li>
-                <a href="#about">About</a>
-              </li>
-              <li>
-                <a href="#contact">Contact</a>
-              </li>
-            </ul>
-          </div>
-
-          <div className="footer-links">
-            <h4>Resources</h4>
-            <ul>
-              <li>
-                <a href="#docs">Docs</a>
-              </li>
-              <li>
-                <a href="#blog">Blog</a>
-              </li>
-              <li>
-                <a href="#support">Support</a>
-              </li>
-            </ul>
-          </div>
-
-          <div className="footer-links">
-            <h4>Connect</h4>
-            <ul>
-              <li>
-                <a href="#linkedin">LinkedIn</a>
-              </li>
-              <li>
-                <a href="#twitter">Twitter</a>
-              </li>
-              <li>
-                <a href="#github">GitHub</a>
-              </li>
-            </ul>
+            >
+              Clear
+            </button>
           </div>
         </div>
+      </main>
 
+      <footer className="site-footer">
         <div className="footer-bottom">
           <p>© 2026 Audit. All rights reserved.</p>
         </div>
