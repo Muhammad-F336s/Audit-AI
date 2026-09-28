@@ -165,6 +165,20 @@ a {
   right: auto;
   /* border: #e2e8f0 3px solid; */
 }
+.base-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  width: 100%;
+}
+.action-btns {
+  height: 30px;
+  width: 60px;
+  margin-right: 20px;
+  border-radius: 25px;
+  background-color: red;
+}
 
 .site-footer {
   background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);

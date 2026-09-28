@@ -210,29 +210,31 @@ const UI = () => {
                   <p>{responseText}</p>
                 )}
               </div>
-
-              <div className="prompt-window">
-                <input
-                  type="text"
-                  className="prompt-reciever"
-                  placeholder="Describe Your Query Here..."
-                  value={userPrompt}
-                  onChange={(e) => setUserPrompt(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      submitUserQuery();
-                    }
-                  }}
-                />
-                <button
-                  type="button"
-                  className="submit-prompt-btn"
-                  onClick={submitUserQuery}
-                  aria-label="Submit prompt"
-                >
-                  <IoMdArrowUp />
-                </button>
+              <div className="base-section">
+                <div className="action-btns"></div>
+                <div className="prompt-window">
+                  <input
+                    type="text"
+                    className="prompt-reciever"
+                    placeholder="Describe Your Query Here..."
+                    value={userPrompt}
+                    onChange={(e) => setUserPrompt(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        submitUserQuery();
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="submit-prompt-btn"
+                    onClick={submitUserQuery}
+                    aria-label="Submit prompt"
+                  >
+                    <IoMdArrowUp />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
