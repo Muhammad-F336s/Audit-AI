@@ -1,7 +1,13 @@
 import Editor from "@monaco-editor/react";
 import { IoMdArrowUp } from "react-icons/io";
 import { FaCode } from "react-icons/fa6";
-import { useState } from "react";
+import { FaPlus } from "react-icons/fa";
+import { TbAnalyze } from "react-icons/tb";
+import { useEffect, useState } from "react";
+import { FaLessThanEqual } from "react-icons/fa6";
+import { PiFlowerLotusThin } from "react-icons/pi";
+import { RiMessageAi3Line } from "react-icons/ri";
+import { TbWashDryclean } from "react-icons/tb";
 import "./App.css";
 
 const Languages = [
@@ -60,10 +66,14 @@ const Languages = [
 ];
 
 const UI = () => {
+  const [visibility, setVisibility] = useState("hidden");
+
   const [userPrompt, setUserPrompt] = useState("");
   const [draftLanguage, setDraftLanguage] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState("javascript");
-  const [responseText, setResponseText] = useState("Ai");
+  const [responseText, setResponseText] = useState(
+    "Please enter some code to audit.",
+  );
   const [isLoading, setIsLoading] = useState(false);
 
   const [code, setCode] = useState(`INSTRUCTIONS
@@ -74,6 +84,34 @@ const UI = () => {
   const handleEditorChange = (value) => {
     setCode(value || "");
   };
+
+  // Visibility manager for "action-button-holder"
+  const toggleVisibility = (event) => {
+    event?.stopPropagation();
+    setVisibility((prev) => (prev === "hidden" ? "visible" : "hidden"));
+  };
+
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      const actionButtonHolder = document.querySelector(
+        ".action-button-holder",
+      );
+      const actionIcon = document.querySelector(".icon");
+      const clickedInsideActionArea =
+        actionButtonHolder?.contains(event.target) ||
+        actionIcon?.contains(event.target);
+
+      if (!clickedInsideActionArea) {
+        setVisibility("hidden");
+      }
+    };
+
+    document.body.addEventListener("click", handleOutsideClick);
+
+    return () => {
+      document.body.removeEventListener("click", handleOutsideClick);
+    };
+  }, []);
 
   // Language Selection Handlers
   const handleLanguageChange = (e) => {
@@ -92,14 +130,17 @@ const UI = () => {
 
   // Prompt Submit Handler
   const submitUserQuery = () => {
-    if (!userPrompt.trim()) return;
+    if (!userPrompt.trim()) {
+      return;
+    }
+
     alert(`User Prompted: ${userPrompt}`);
   };
 
   // Main Audit Form Submit Action
   const handleOperationSubmit = async (operationType) => {
     if (!code.trim()) {
-      alert("Please enter some code first!");
+      setUserPrompt("");
       return;
     }
 
@@ -129,6 +170,31 @@ const UI = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleBtnClick = (e) => {
+    const label = e.currentTarget.getAttribute("label");
+    handleOperationSubmit(label);
+    if (!code.trim()) {
+      setUserPrompt("");
+      alert("Please enter some code to audit.");
+      return;
+    } else if (label === "Analyze")
+      setUserPrompt(
+        `${label} my ${selectedLanguage} code for bugs and issues.`,
+      );
+    else if (label === "Shorten")
+      setUserPrompt(
+        `${label} my ${selectedLanguage} code while keeping its behavior.`,
+      );
+    else if (label === "Beautify")
+      setUserPrompt(
+        `${label} my ${selectedLanguage} code for better readability.`,
+      );
+    else if (label === "Feedback")
+      setUserPrompt(
+        `${label} on my ${selectedLanguage} code for improvement suggestions.`,
+      );
   };
 
   return (
@@ -211,7 +277,80 @@ const UI = () => {
                 )}
               </div>
               <div className="base-section">
-                <div className="action-btns"></div>
+                <div className="action-btns-container">
+                  <div className="icon" onClick={toggleVisibility}>
+                    {/* <TiArrowSortedUp */}
+                    <FaPlus
+                      style={{
+                        zoom: 1,
+                      }}
+                    />
+                  </div>
+                  <div className="action-button-holder" style={{ visibility }}>
+                    <button
+                      type="button"
+                      onClick={handleBtnClick}
+                      className="submit-btn action-btn"
+                      data-tooltip="Analyze code for bugs and issues"
+                      aria-label="Analyze code"
+                      label="Analyze"
+                    >
+                      <TbAnalyze />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleBtnClick}
+                      label="Shorten"
+                      className="shorten-btn action-btn"
+                      data-tooltip="Shorten code while keeping its behavior"
+                      aria-label="Shorten code"
+                    >
+                      <FaLessThanEqual />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleBtnClick}
+                      label="Beautify"
+                      className="beautify-btn action-btn"
+                      data-tooltip="Format code for better readability"
+                      aria-label="Beautify code"
+                    >
+                      <PiFlowerLotusThin />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleBtnClick}
+                      label="Feedback"
+                      className="feedback-btn action-btn"
+                      data-tooltip="Get feedback & improvement suggestions"
+                      aria-label="Get feedback"
+                    >
+                      <RiMessageAi3Line
+                        style={{
+                          rotate: "180deg",
+                        }}
+                      />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCode("");
+                        setUserPrompt("");
+                        setResponseText("Please enter some code to audit.");
+                      }}
+                      label="Clear"
+                      className="clear-btn action-btn"
+                      data-tooltip="Clear code from the editor"
+                      aria-label="Clear code"
+                    >
+                      <TbWashDryclean />
+                    </button>
+                  </div>
+                </div>
                 <div className="prompt-window">
                   <input
                     type="text"
@@ -238,53 +377,68 @@ const UI = () => {
               </div>
             </div>
           </div>
-
-          {/* Action Buttons */}
-          <div className="imp-btns">
-            <button
-              type="button"
-              onClick={() => handleOperationSubmit("Analyze")}
-              className="submit-btn"
-            >
-              Analyze
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleOperationSubmit("Shorten It")}
-              className="shorten-btn"
-            >
-              Shorten It
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleOperationSubmit("Beautify It")}
-              className="beautify-btn"
-            >
-              Beautify It
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleOperationSubmit("Feedback")}
-              className="feedback-btn"
-            >
-              Feedback
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setCode("")}
-              className="clear-btn"
-            >
-              Clear
-            </button>
-          </div>
         </div>
       </main>
 
       <footer className="site-footer">
+        <div className="footer-content">
+          <div className="footer-brand">
+            <div className="footer-logo">
+              <span>Audit</span>
+              <FaCode className="footer-logo-icon" />
+            </div>
+            <p>
+              AI-powered code review for cleaner, faster, and more reliable
+              software delivery.
+            </p>
+          </div>
+
+          <div className="footer-links">
+            <h4>Company</h4>
+            <ul>
+              <li>
+                <a href="#home">Home</a>
+              </li>
+              <li>
+                <a href="#about">About</a>
+              </li>
+              <li>
+                <a href="#contact">Contact</a>
+              </li>
+            </ul>
+          </div>
+
+          <div className="footer-links">
+            <h4>Resources</h4>
+            <ul>
+              <li>
+                <a href="#docs">Docs</a>
+              </li>
+              <li>
+                <a href="#blog">Blog</a>
+              </li>
+              <li>
+                <a href="#support">Support</a>
+              </li>
+            </ul>
+          </div>
+
+          <div className="footer-links">
+            <h4>Connect</h4>
+            <ul>
+              <li>
+                <a href="#linkedin">LinkedIn</a>
+              </li>
+              <li>
+                <a href="#twitter">Twitter</a>
+              </li>
+              <li>
+                <a href="#github">GitHub</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
         <div className="footer-bottom">
           <p>© 2026 Audit. All rights reserved.</p>
         </div>
