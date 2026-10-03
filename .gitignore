@@ -12,6 +12,7 @@ dist
 dist-ssr
 *.local
 /backend/.env
+Ai.md
 
 # Editor directories and files
 .vscode/*
