@@ -131,9 +131,10 @@ const UI = () => {
   const submitUserQuery = () => {
     if (!userPrompt.trim()) {
       return;
+    } else {
+      handleOperationSubmit(userPrompt);
+      setUserPrompt("");
     }
-
-    alert(`User Prompted: ${userPrompt}`);
   };
 
   // Main Audit Form Submit Action
@@ -173,7 +174,7 @@ const UI = () => {
 
   const handleBtnClick = (e) => {
     const label = e.currentTarget.getAttribute("label");
-    handleOperationSubmit(label);
+    // handleOperationSubmit(label);
     if (!code.trim()) {
       setUserPrompt("");
       alert("Please enter some code to audit.");
@@ -237,8 +238,8 @@ const UI = () => {
                   lineHeight: 24,
                   padding: { top: 16, bottom: 16 },
                   cursorBlinking: "smooth",
-                  minimap: { enabled: false },
-                  scrollBeyondLastLine: false,
+                  minimap: { enabled: true },
+                  scrollBeyondLastLine: true,
                   automaticLayout: true,
                 }}
               />
@@ -340,6 +341,7 @@ const UI = () => {
                         setCode("");
                         setUserPrompt("");
                         setResponseText("Please enter some code to audit.");
+                        submitUserQuery();
                       }}
                       label="Clear"
                       className="clear-btn action-btn"
