@@ -67,7 +67,6 @@ const Languages = [
 
 const UI = () => {
   const [visibility, setVisibility] = useState("hidden");
-
   const [userPrompt, setUserPrompt] = useState("");
   const [draftLanguage, setDraftLanguage] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState("javascript");
