@@ -139,6 +139,9 @@ a {
 .clear-btn {
   font-size: 1.35rem;
 }
+.del-chat {
+  margin: 0 0.5rem 0 auto;
+}
 /*
 .submit-btn:hover,
 .shorten-btn:hover,
@@ -284,8 +287,8 @@ a {
   width: 50px;
   margin-bottom: 1.3rem;
   border-radius: 15px;
-  background-color: #1d2430;
-  background: rgba(255, 255, 255, 0.08);
+  background-color: #14243d;
+  /* background: rgba(255, 255, 255, 0.08); */
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.18);
   display: flex;
@@ -372,6 +375,15 @@ a {
   .footer-content {
     grid-template-columns: 1fr;
   }
+}
+.user-message {
+  background-color: #1e293b;
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+  border-radius: 8px 8px 1px 8px;
+  margin-bottom: 0.5rem;
+  max-width: max-content;
+  margin-left: auto;
 }
 /* body {
   font-family: Arial, sans-serif;

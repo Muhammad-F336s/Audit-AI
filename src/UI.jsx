@@ -8,8 +8,14 @@ import { FaLessThanEqual } from "react-icons/fa6";
 import { PiFlowerLotusThin } from "react-icons/pi";
 import { RiMessageAi3Line } from "react-icons/ri";
 import { TbWashDryclean } from "react-icons/tb";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { MdClear } from "react-icons/md";
+
+// import reactSyntaxHighlighter from "react-syntax-highlighter";
 import "./App.css";
 
+const chat = [];
 const Languages = [
   "JavaScript",
   "TypeScript",
@@ -73,7 +79,7 @@ const UI = () => {
   const [responseText, setResponseText] = useState(
     "Please enter some code to audit.",
   );
-  const [isLoading, setIsLoading] = useState(false);
+  // const [isLoading, setIsLoading] = useState(false);
 
   const [code, setCode] = useState(`INSTRUCTIONS
     1. Select language from the dropdown and press Enter.
@@ -126,6 +132,23 @@ const UI = () => {
       console.log(`User agreed on: ${formattedLang}`);
     }
   };
+  const arrayBuilder = (prompt, response) => {
+    if (prompt) {
+      chat.push({ id: chat.length + 1, role: "user", content: prompt });
+    }
+    if (response) {
+      chat.push({ id: chat.length + 1, role: "assistant", content: response });
+    }
+    console.log("Chat Array:", chat);
+  };
+
+  // const createChatExperience = (prompt) => {
+  //   const chatWindow = document.querySelector(".response-display");
+  //   const userMessage = document.createElement("div");
+  //   userMessage.className = "user-message";
+  //   userMessage.textContent = `${prompt}`;
+  //   chatWindow.appendChild(userMessage);
+  // };
 
   // Prompt Submit Handler
   const submitUserQuery = () => {
@@ -139,12 +162,13 @@ const UI = () => {
 
   // Main Audit Form Submit Action
   const handleOperationSubmit = async (operationType) => {
+    // createChatExperience(userPrompt, operationType);
     if (!code.trim()) {
       setUserPrompt("");
       return;
     }
 
-    setIsLoading(true);
+    // setIsLoading(true);
     setResponseText("Analyzing code, please wait...");
 
     try {
@@ -163,12 +187,13 @@ const UI = () => {
 
       const result = await response.json();
       console.log("Server Response:", result);
+      arrayBuilder(userPrompt, result.message);
       setResponseText(result.message || "Response received successfully.");
     } catch (error) {
       console.error("API Call Failed:", error);
       setResponseText("Failed to get response from server.");
     } finally {
-      setIsLoading(false);
+      // setIsLoading(false);
     }
   };
 
@@ -264,22 +289,36 @@ const UI = () => {
                   ))}
                 </datalist>
 
+                <button
+                  type="button"
+                  onClick={() => {
+                    confirm(
+                      `Are you sure you want to clear the chat history? This action cannot be undone.`,
+                    );
+                    setUserPrompt("");
+                    setResponseText("Please enter some code to audit.");
+                  }}
+                  label="Clear"
+                  className="del-chat clear-btn action-btn"
+                  data-tooltip="Delete Chat"
+                  aria-label="Delete Chat"
+                >
+                  <MdClear style={{ zoom: 1.5 }} />
+                </button>
+
                 <div className="language-display">
                   {selectedLanguage.toUpperCase()}
                 </div>
               </div>
 
               <div className="response-display">
-                {isLoading ? (
-                  <p>Processing Request...</p>
-                ) : (
-                  <p>{responseText}</p>
-                )}
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {responseText}
+                </ReactMarkdown>{" "}
               </div>
               <div className="base-section">
                 <div className="action-btns-container">
                   <div className="icon" onClick={toggleVisibility}>
-                    {/* <TiArrowSortedUp */}
                     <FaPlus
                       style={{
                         zoom: 1,
@@ -340,13 +379,11 @@ const UI = () => {
                       onClick={() => {
                         setCode("");
                         setUserPrompt("");
-                        setResponseText("Please enter some code to audit.");
-                        submitUserQuery();
                       }}
                       label="Clear"
-                      className="clear-btn action-btn"
+                      className=" clear-btn action-btn"
                       data-tooltip="Clear code from the editor"
-                      aria-label="Clear code"
+                      aria-label="Clear Code"
                     >
                       <TbWashDryclean />
                     </button>
