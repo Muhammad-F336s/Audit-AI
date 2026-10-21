@@ -133,9 +133,9 @@ const UI = () => {
     }
   };
   const arrayBuilder = (prompt, response) => {
-    if (prompt) {
-      chat.push({ id: chat.length + 1, role: "user", content: prompt });
-    }
+    // if (prompt) {
+    //   chat.push({ id: chat.length + 1, role: "user", content: prompt });
+    // }
     if (response) {
       chat.push({ id: chat.length + 1, role: "assistant", content: response });
     }
@@ -155,7 +155,12 @@ const UI = () => {
     if (!userPrompt.trim()) {
       return;
     } else {
-      handleOperationSubmit(userPrompt);
+      chat.push({
+        id: chat.length + 1,
+        role: "user",
+        content: userPrompt,
+      });
+      handleOperationSubmit(chat);
       setUserPrompt("");
     }
   };
@@ -178,15 +183,17 @@ const UI = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          chat: chat,
           code: code,
           language: selectedLanguage,
           operation: operationType,
-          prompt: userPrompt,
+          prompt: chat[chat.length - 1],
         }),
       });
 
       const result = await response.json();
-      console.log("Server Response:", result);
+      console.log("Prompt:", userPrompt);
+      console.log("Server Response:", result.message);
       arrayBuilder(userPrompt, result.message);
       setResponseText(result.message || "Response received successfully.");
     } catch (error) {
@@ -296,7 +303,12 @@ const UI = () => {
                       `Are you sure you want to clear the chat history? This action cannot be undone.`,
                     );
                     setUserPrompt("");
-                    setResponseText("Please enter some code to audit.");
+                    setResponseText(
+                      `Chat History Cleared \n \n Please enter some code to audit.  `,
+                    );
+                    chat.splice(0, chat.length);
+                    console.log(chat);
+                    console.clear();
                   }}
                   label="Clear"
                   className="del-chat clear-btn action-btn"

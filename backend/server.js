@@ -5,6 +5,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import Groq from "groq-sdk";
 import process from "node:process";
+// import language from "react-syntax-highlighter/dist/esm/languages/hljs/1c";
 
 dotenv.config();
 
@@ -24,19 +25,32 @@ app.get("/", (req, res) => {
 
 app.post("/api/ask", async (req, res) => {
   try {
+    const chat = req.body?.chat || [];
     const code = req.body?.code || "Hello World";
+    const prompt = req.body?.prompt || "Hi";
     const operation = req.body?.operation || "analyze my code";
+    const language = req.body?.language || "javascript";
     console.log("Received body:", req.body);
     console.log("Code:", code);
     console.log("Operation:", operation);
+    console.log("Prompt:", prompt);
+    console.log("Language:", language);
+
+    const chathistory = chat.map((chat) => {
+      return {
+        role: chat.role,
+        content: chat.content,
+      };
+    });
 
     const completion = await groq.chat.completions.create({
       model: "openai/gpt-oss-120b",
       messages: [
         {
           role: "user",
-          content: `Hi I have some code that I want you to ${operation}. Here is the code: ${code}`,
+          content: `Hi my prompt is ${prompt} and my code is ${code} and I want you to ${operation} and the language is ${language}.`,
         },
+        ...chathistory,
         {
           role: "system",
           content:
