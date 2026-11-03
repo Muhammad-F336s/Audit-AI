@@ -14,7 +14,6 @@ import { MdClear } from "react-icons/md";
 
 // import reactSyntaxHighlighter from "react-syntax-highlighter";
 import "./App.css";
-
 const chat = [];
 const Languages = [
   "JavaScript",
@@ -77,14 +76,15 @@ const UI = () => {
   const [draftLanguage, setDraftLanguage] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState("javascript");
   const [responseText, setResponseText] = useState(
-    "Please enter some code to audit. \n \n Please don't paste your secrets here",
+    "Please enter some code to audit. \n \n Don't paste your secrets here",
   );
+  const [allclear, setAllClear] = useState(true);
   // const [isLoading, setIsLoading] = useState(false);
-
-  const [code, setCode] = useState(`INSTRUCTIONS
-    1. Select language from the dropdown and press Enter.
-    2. Paste your code here to audit.
-    3. Do not pase your secrets (Api Keys, app passwords & security keys)`);
+  const basicInstructions = `INSTRUCTIONS
+1. Select language from the dropdown and press Enter.
+2. Paste your code here to audit.
+3. Do not paste your secrets (Api Keys, app passwords & security keys)`;
+  const [code, setCode] = useState(basicInstructions);
 
   // Editor Value Handler
   const handleEditorChange = (value) => {
@@ -143,6 +143,22 @@ const UI = () => {
     console.log("Chat Array:", chat);
   };
 
+  const manageApiAlertClick = () => {
+    if (allclear === true) {
+      window.alert(
+        "All Clear! No issues detected. \n \n Please enter some code to audit. \n \n Don't paste your secrets or sensitive information here",
+      );
+    } else {
+      setResponseText("All issues resolved. Please continue to audit.");
+      setCode(basicInstructions);
+      setAllClear(true);
+
+      window.alert(
+        "Trouble Fixed! \n \n State resolved, please continue to audit.",
+      );
+    }
+  };
+
   // const createChatExperience = (prompt) => {
   //   const chatWindow = document.querySelector(".response-display");
   //   const userMessage = document.createElement("div");
@@ -188,7 +204,7 @@ const UI = () => {
     localStorage.removeItem("chat");
     setUserPrompt("");
     setResponseText(
-      "Chat History Cleared \n \n Please enter some code to audit. \n \n Please don't paste your secrets here",
+      "Chat History Cleared \n \n Please enter some code to audit. \n \n Don't paste your secrets here",
     );
   };
 
@@ -219,11 +235,34 @@ const UI = () => {
       });
 
       const result = await response.json();
+      console.log(result.message);
       // console.log("Prompt:", userPrompt);
       // console.log("Server Response:", result.message);
-      arrayBuilder(userPrompt, result.message);
-      setResponseText(result.message || "Response received successfully.");
-      updateStorage();
+      if (
+        result.message.includes("You have pasted your APi key here") ||
+        result.message.includes("pasted your secrets") ||
+        result.message.includes("pasted your either API key or some secret") ||
+        result.message.includes(
+          "Please remove (clicking on the red button) it and try again.",
+        ) ||
+        result.message.includes(
+          "Please remove your api key from the code and then try again.",
+        ) ||
+        result.message.includes(
+          "Please remove your secrets or sensitive information from the code and then try again.",
+        ) ||
+        result.message.includes("pasted your api key") ||
+        result.message.includes("pasted your API key") ||
+        result.message.includes("Please remove the API key ") ||
+        result.message.includes("Please remove the secret key ")
+      ) {
+        setResponseText(result.message);
+        setAllClear(false);
+      } else {
+        arrayBuilder(userPrompt, result.message);
+        setResponseText(result.message || "Response received successfully.");
+        updateStorage();
+      }
     } catch (error) {
       console.error("API Call Failed:", error);
       setResponseText("Failed to get response from server.");
@@ -326,8 +365,18 @@ const UI = () => {
 
                 <button
                   type="button"
-                  className="Api-alert"
-                  onClick={() => window.alert("Trouble Fixed")}
+                  className={`Api-alert${allclear ? "" : " is-warning"}`}
+                  aria-label={
+                    allclear
+                      ? "No API key or secret detected"
+                      : "Secret detected. Click to reset the audit."
+                  }
+                  title={
+                    allclear
+                      ? "No API key or secret detected"
+                      : "Secret detected. Click to reset the audit."
+                  }
+                  onClick={manageApiAlertClick}
                 ></button>
 
                 <button
@@ -351,7 +400,9 @@ const UI = () => {
                   {responseText}
                 </ReactMarkdown>{" "}
               </div>
-              <div className="base-section">
+              <div
+                className={`base-section ${allclear ? "base-section-is-visible" : "base-section-is-hidden"}`}
+              >
                 <div className="action-btns-container">
                   <div className="icon" onClick={toggleVisibility}>
                     <FaPlus
@@ -423,7 +474,7 @@ const UI = () => {
                     </button>
                   </div>
                 </div>
-                <div className="prompt-window">
+                <div className={`prompt-window${allclear ? "" : " is-hidden"}`}>
                   <input
                     type="text"
                     className="prompt-reciever"
