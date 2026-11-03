@@ -77,13 +77,14 @@ const UI = () => {
   const [draftLanguage, setDraftLanguage] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState("javascript");
   const [responseText, setResponseText] = useState(
-    "Please enter some code to audit.",
+    "Please enter some code to audit. \n \n Please don't paste your secrets here",
   );
   // const [isLoading, setIsLoading] = useState(false);
 
   const [code, setCode] = useState(`INSTRUCTIONS
     1. Select language from the dropdown and press Enter.
-    2. Paste your code here to audit.`);
+    2. Paste your code here to audit.
+    3. Do not pase your secrets (Api Keys, app passwords & security keys)`);
 
   // Editor Value Handler
   const handleEditorChange = (value) => {
@@ -165,6 +166,32 @@ const UI = () => {
     }
   };
 
+  // Storage Handler
+  const updateStorage = () => {
+    try {
+      localStorage.setItem("chat", JSON.stringify(chat));
+    } catch (error) {
+      console.error("Failed storing chat data in local storage.", error);
+    }
+  };
+
+  const handleClearChat = () => {
+    if (
+      !window.confirm(
+        "Are you sure you want to clear the chat history? This action cannot be undone.",
+      )
+    ) {
+      return;
+    }
+
+    chat.splice(0, chat.length);
+    localStorage.removeItem("chat");
+    setUserPrompt("");
+    setResponseText(
+      "Chat History Cleared \n \n Please enter some code to audit. \n \n Please don't paste your secrets here",
+    );
+  };
+
   // Main Audit Form Submit Action
   const handleOperationSubmit = async (operationType) => {
     // createChatExperience(userPrompt, operationType);
@@ -192,10 +219,11 @@ const UI = () => {
       });
 
       const result = await response.json();
-      console.log("Prompt:", userPrompt);
-      console.log("Server Response:", result.message);
+      // console.log("Prompt:", userPrompt);
+      // console.log("Server Response:", result.message);
       arrayBuilder(userPrompt, result.message);
       setResponseText(result.message || "Response received successfully.");
+      updateStorage();
     } catch (error) {
       console.error("API Call Failed:", error);
       setResponseText("Failed to get response from server.");
@@ -298,18 +326,13 @@ const UI = () => {
 
                 <button
                   type="button"
-                  onClick={() => {
-                    confirm(
-                      `Are you sure you want to clear the chat history? This action cannot be undone.`,
-                    );
-                    setUserPrompt("");
-                    setResponseText(
-                      `Chat History Cleared \n \n Please enter some code to audit.  `,
-                    );
-                    chat.splice(0, chat.length);
-                    console.log(chat);
-                    console.clear();
-                  }}
+                  className="Api-alert"
+                  onClick={() => window.alert("Trouble Fixed")}
+                ></button>
+
+                <button
+                  type="button"
+                  onClick={handleClearChat}
                   label="Clear"
                   className="del-chat clear-btn action-btn"
                   data-tooltip="Delete Chat"
@@ -390,7 +413,6 @@ const UI = () => {
                       type="button"
                       onClick={() => {
                         setCode("");
-                        setUserPrompt("");
                       }}
                       label="Clear"
                       className=" clear-btn action-btn"
